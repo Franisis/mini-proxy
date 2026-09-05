@@ -7,6 +7,7 @@ use reqwest::Client;
 
 pub async fn proxy_request(
     client: Client,
+    upstream: String,
     request: Request,
 ) -> Result<Response<Body>, String> {
     let method = request.method().clone();
@@ -14,8 +15,9 @@ pub async fn proxy_request(
     let headers = request.headers().clone();
 
     let url = format!(
-        "http://127.0.0.1:3000{}",
-        uri
+        "{}{}",
+        upstream,
+        uri,
     );
 
     let body = to_bytes(request.into_body(), usize::MAX)

@@ -6,25 +6,41 @@ use axum::{
 use reqwest::Client;
 
 mod proxy;
+mod config;
 
 #[tokio::main]
 async fn main() {
+
+    let config = config::config::Config::from_file("config/proxy.toml")
+        .expect("Failed to load configuration!");
+    
+    println!("Configuration loaded:");
+    println!("{:#?}", config);
+        
     let client = Client::new();
+
+    let upstream = config.upstream.clone();
 
     let app = Router::new()
         .route("/{*path}", any(move |request: Request| {
             let client = client.clone();
+            let upstream = upstream.clone();
 
             async move {
-                proxy::handler::proxy_request(client, request).await
+                proxy::handler::
+                    proxy_request(
+                        client,
+                        upstream,
+                        request,
+                        ).await
             }
         }));
 
-    let listener = tokio::net::TcpListener::bind("127.0.0.1:8080")
+    let listener = tokio::net::TcpListener::bind(&config.listen)
         .await
         .unwrap();
 
-    println!("Proxy running on http://localhost:8080");
+    println!("Proxy running on http://{}",config.listen);
 
     axum::serve(listener, app)
         .await
