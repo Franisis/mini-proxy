@@ -11,7 +11,7 @@ mod config;
 #[tokio::main]
 async fn main() {
 
-    let config = config::config::Config::from_file("config/proxy.toml")
+    let config = config::Config::from_file("config/proxy.toml")
         .expect("Failed to load configuration!");
     
     println!("Configuration loaded:");
@@ -27,8 +27,7 @@ async fn main() {
             let upstream = upstream.clone();
 
             async move {
-                proxy::handler::
-                    proxy_request(
+                proxy::proxy_request(
                         client,
                         upstream,
                         request,
